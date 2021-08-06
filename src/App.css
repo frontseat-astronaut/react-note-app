@@ -1,4 +1,35 @@
-.Note {
+.Note, .TextInput, .Button {
   white-space: pre-wrap;
-  background-color: rgb(71, 83, 78);
+  color: white;
+  background-color: rgb(71, 76, 83);
+  border-radius: 5px;
+  font-family: -apple-system, blinkmacsystemfont, 'segoe ui', 'roboto', 'oxygen',
+    'ubuntu', 'cantarell', 'fira sans', 'droid sans', 'helvetica neue',
+    sans-serif;
+}
+
+.Note, .TextInput {
+  min-height: 100px;
+  min-width: 100px;
+}
+
+.TextInput {
+  background-color: rgb(27, 27, 27);
+}
+
+.Button {
+  cursor: pointer;
+  border-style: solid;
+  border-color: white;
+  padding: 5px;
+  border-radius: 3px;
+  background: none;
+  background-color: transparent;
+}
+
+.NotesGrid {
+  display: grid;
+  grid-gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
 }

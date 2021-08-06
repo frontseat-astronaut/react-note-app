@@ -3,9 +3,7 @@ import React from 'react';
 
 function Note(props) {
   return (
-    <div className="Note">
-      {props.text}
-    </div>
+    <textarea className="Note" value={props.text} readOnly />
   );
 }
 
@@ -13,7 +11,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = { "notes": ["a\nb", "c\nd"], "isTyping": false, "newNote": "" };
+    this.state = { "notes": ["Hello there!\nI'm note #1", "Bruh\nNotes are useless", "kd", "djasi", "jdisa", "odkaso"], "isTyping": false, "newNote": "" };
 
     this.handleNewNote = this.handleNewNote.bind(this);
     this.newNoteButton = this.newNoteButton.bind(this);
@@ -24,17 +22,17 @@ class App extends React.Component {
   }
   displayNotes() {
     return (
-      <ul>
+      <div className="NotesGrid">
         {this.state.notes.map((note, index) =>
-          <li key={index}><Note text={note} /><br/></li>
+          <div key={index}><Note text={note} /></div>
         )}
-      </ul>
+      </div>
     );
   }
   newNoteButton() {
     return (
-      <button onClick={this.handleNewNote}>
-        Create New Note
+      <button onClick={this.handleNewNote} className="Button">
+        + Add Note
       </button>
     );
   }
@@ -48,9 +46,9 @@ class App extends React.Component {
   enterNote() {
     return (
       <form onSubmit={this.handleSubmit}>
-        <textarea value={this.state.newNote} onChange={this.handleChange} />
+        <textarea value={this.state.newNote} onChange={this.handleChange} className="TextInput" />
         <br />
-        <input type="submit" value="Add Note" />
+        <input type="submit" value="Done" className="Button" />
       </form>
     );
   }
@@ -63,11 +61,9 @@ class App extends React.Component {
   render() {
     return (
       <div className="App">
+        <br/>
         {(!this.state.isTyping) ? this.newNoteButton() : this.enterNote()} <br /><br />
-        <label >
-          <h2>Your notes: </h2>
-          {this.displayNotes()}
-        </label>
+        {this.displayNotes()}
       </div>
     );
   }
