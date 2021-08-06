@@ -1,35 +1,87 @@
-.Note, .TextInput, .Button {
+.Heading, .TextInput, button, .NoteText, .DropdownOptions, a, .Note {
   white-space: pre-wrap;
   color: white;
-  background-color: rgb(71, 76, 83);
+  background-color: transparent;
   border-radius: 5px;
   font-family: -apple-system, blinkmacsystemfont, 'segoe ui', 'roboto', 'oxygen',
     'ubuntu', 'cantarell', 'fira sans', 'droid sans', 'helvetica neue',
     sans-serif;
 }
 
-.Note, .TextInput {
-  min-height: 100px;
-  min-width: 100px;
+.Heading {
+  text-align: justify;
 }
 
-.TextInput {
-  background-color: rgb(27, 27, 27);
+::-webkit-scrollbar {
+  width:0;
+  background: transparent;
 }
 
-.Button {
+button {
   cursor: pointer;
   border-style: solid;
   border-color: white;
   padding: 5px;
-  border-radius: 3px;
   background: none;
   background-color: transparent;
+  margin-right: 5px;
 }
+
+.Note {
+  position: relative;
+  background: rgb(67, 77, 87);
+  border-style: solid;
+  border-width: thin;
+  border-color: silver;
+  width: 200px;
+  height: 200px;
+}
+
+.NoteText {
+  outline: none;
+  position: absolute;
+  top: 20px;
+  left: 10px;
+  resize: none;
+  background: transparent;
+  border-color: transparent;
+  z-index: 1;
+  height: 80%;
+}
+
+.Options {
+  position: absolute;
+  top: -5px;
+  right: 25px;
+  display: inline-block;
+}
+
+.OptionsButton {
+  position: absolute;
+  cursor: pointer;
+  border: none;
+  font-weight: 500;
+  z-index: 2;
+}
+
+.OptionsButton:hover{
+  text-decoration: underline;
+}
+
+.DropdownOptions {
+  display: block;
+  z-index: 3;
+}
+
+/* .Options:hover .DropdownOptions {
+  display: block;
+  position: absolute;
+  top: 30px;
+  background: brown;
+} */
 
 .NotesGrid {
   display: grid;
   grid-gap: 15px;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-
 }
