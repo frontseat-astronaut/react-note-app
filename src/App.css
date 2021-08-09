@@ -1,4 +1,4 @@
-.Heading, .TextInput, button, .NoteText, .DropdownOptions, a, .Note {
+.Heading, .TextInput, button, .NoteText, .DropdownOptions, a, .Note, .EditingNote {
   white-space: pre-wrap;
   color: white;
   background-color: transparent;
@@ -17,17 +17,13 @@
   background: transparent;
 }
 
-button {
-  cursor: pointer;
-  border-style: solid;
-  border-color: white;
-  padding: 5px;
-  background: none;
-  background-color: transparent;
-  margin-right: 5px;
+.NotesGrid {
+  display: grid;
+  grid-gap: 50px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
-.Note {
+.Note, .EditingNote {
   position: relative;
   background: rgb(67, 77, 87);
   border-style: solid;
@@ -35,6 +31,10 @@ button {
   border-color: silver;
   width: 200px;
   height: 200px;
+}
+
+.EditingNote {
+  background: rgb(27, 27, 27);
 }
 
 .NoteText {
@@ -80,8 +80,23 @@ button {
   background: brown;
 } */
 
-.NotesGrid {
-  display: grid;
-  grid-gap: 15px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+.DoneButton {
+  position: absolute;
+  top: 205px;
+}
+
+.CancelButton {
+  position: absolute;
+  left: 60px;
+  top: 205px;
+}
+
+button {
+  cursor: pointer;
+  border-style: solid;
+  border-color: white;
+  padding: 5px;
+  background: none;
+  background-color: transparent;
+  margin-right: 5px;
 }

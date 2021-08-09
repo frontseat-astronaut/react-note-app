@@ -17,44 +17,60 @@ class Note extends React.Component {
 
     this.key = props.key;
     this.deleteNote = props.deleteNote;
+    this.parentRefresh = props.parentRefresh;
 
-    this.state = { "text": props.text, "isTyping": false };
+    this.state = { "text": props.text, "newText": "", "isTyping": false };
 
     this.editNote = this.editNote.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleCancel = this.handleCancel.bind(this);
   }
 
   editNote(event) {
-    this.setState({ "isTyping": true });
+    this.setState({ "isTyping": true, "newText": this.state.text });
+    this.parentRefresh();
   }
 
   handleChange(event) {
-    this.setState({ "text": event.target.value });
+    this.setState({ "newText": event.target.value });
+    this.parentRefresh();
   }
 
   handleSubmit(event) {
+    this.setState({ "isTyping": false, "text": this.state.newText });
+    this.parentRefresh();
+  }
+
+  handleCancel(event) {
     this.setState({ "isTyping": false });
+    this.parentRefresh();
   }
 
   render() {
-    console.log("Rendering!");
     return (
-      <div className="Note">
+      <div className={(this.state.isTyping) ? "EditingNote" : "Note"}>
         {
-          (!this.state.isTyping)?(
+          (!this.state.isTyping) ? (
             <div className="Options">
-              <button className="OptionsButton" >...</button>
+              {/* <button className="OptionsButton" >...</button> */}
               <div className="DropdownOptions">
-                <a href="#" onClick={this.editNote}>Edit</a><br />
+                <a href="#" onClick={this.editNote}>Edit</a><br /><br />
                 <a href="#" onClick={this.deleteNote}>Delete</a>
               </div>
             </div>
-          ):(null)
+          ) : (null)
         }
-        <textarea className="NoteText" value={this.state.text} readOnly={!this.state.isTyping} onChange={this.handleChange} />
         {
-          (this.state.Typing)?(<button onClick={this.handleSubmit}>Submit</button>):(null)
+          (this.state.isTyping) ? (
+            <div>
+              <textarea className="NoteText" value={this.state.newText} readOnly={false} onChange={this.handleChange} /> <br />
+              <button className="DoneButton" onClick={this.handleSubmit}> Done </button>
+              <button className="CancelButton" onClick={this.handleCancel}> Cancel </button>
+            </div>
+          ) : (
+            <textarea className="NoteText" value={this.state.text} readOnly={true} />
+          )
         }
       </div>
     );
@@ -69,12 +85,17 @@ class App extends React.Component {
     this.newNoteButton = this.newNoteButton.bind(this);
     this.handleNewNote = this.handleNewNote.bind(this);
     this.deleteNote = this.deleteNote.bind(this);
+    this.refresh = this.refresh.bind(this);
 
     let jsxNotes = {}
     for (let i = 0; i < defaultNotes.length; ++i) {
-      jsxNotes[i] = <Note text={defaultNotes[i]} key={i} deleteNote={this.deleteNote(i)} />;
+      jsxNotes[i] = <Note text={defaultNotes[i]} key={i} deleteNote={this.deleteNote(i)} parentRefresh={this.refresh} />;
     }
     this.state = { "notes": jsxNotes, "editMode": false, "totalNotesCounter": jsxNotes.length };
+  }
+
+  refresh() {
+    this.setState({ "dummyParam": false });
   }
 
   displayNotes() {
@@ -94,8 +115,8 @@ class App extends React.Component {
   }
 
   handleNewNote(event) {
-    let newNote = <Note
-    this.setState({"editMode": true})
+    // let newNote = <Note
+    // this.setState({"editMode": true})
   }
 
   deleteNote(key) {
