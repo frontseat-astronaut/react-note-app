@@ -51,34 +51,18 @@
 
 .Options {
   position: absolute;
-  top: -5px;
-  right: 25px;
+  text-align: left;
+  right: -25px;
   display: inline-block;
 }
 
-.OptionsButton {
-  position: absolute;
-  cursor: pointer;
-  border: none;
-  font-weight: 500;
-  z-index: 2;
+.Options a {
+  text-decoration: none;
 }
 
-.OptionsButton:hover{
+.Options a:hover {
   text-decoration: underline;
 }
-
-.DropdownOptions {
-  display: block;
-  z-index: 3;
-}
-
-/* .Options:hover .DropdownOptions {
-  display: block;
-  position: absolute;
-  top: 30px;
-  background: brown;
-} */
 
 .DoneButton {
   position: absolute;

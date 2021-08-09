@@ -53,11 +53,9 @@ class Note extends React.Component {
         {
           (!this.state.isTyping) ? (
             <div className="Options">
-              {/* <button className="OptionsButton" >...</button> */}
-              <div className="DropdownOptions">
-                <a href="#" onClick={this.editNote}>Edit</a><br /><br />
-                <a href="#" onClick={this.deleteNote}>Delete</a>
-              </div>
+              <a href="#" onClick={this.deleteNote}>[x]</a>
+              <br/>
+              <a href="#" onClick={this.editNote}>[/]</a>
             </div>
           ) : (null)
         }
@@ -121,9 +119,12 @@ class App extends React.Component {
 
   deleteNote(key) {
     let handleDelete = function (event) {
-      let notes = this.state.notes;
-      delete notes[key];
-      this.setState({ "notes": notes });
+      if(window.confirm(`Delete Note #${key+1}?`))
+      {
+        let notes = this.state.notes;
+        delete notes[key];
+        this.setState({ "notes": notes });
+      }
     };
     return handleDelete.bind(this);
   }
