@@ -1,4 +1,4 @@
-.Heading, .TextInput, button, .NoteText, .DropdownOptions, a, .Note, .EditingNote {
+.Heading, .TextInput, .titleTextLine, button, .NoteText, .NoteTitle, .DropdownOptions, a, .Note, .EditingNote {
   white-space: pre-wrap;
   color: white;
   background-color: transparent;
@@ -9,7 +9,8 @@
 }
 
 .Heading {
-  text-align: justify;
+  position: relative;
+  left: 40%;
 }
 
 ::-webkit-scrollbar {
@@ -37,22 +38,45 @@
   background: rgb(27, 27, 27);
 }
 
-.NoteText {
+.NoteText, .NoteTitle {
   outline: none;
   position: absolute;
-  top: 20px;
-  left: 10px;
-  resize: none;
   background: transparent;
   border-color: transparent;
   z-index: 1;
-  height: 80%;
+  resize: none;
+}
+
+.NoteTitle {
+  top: 5%;
+  left: 5%;
+  width: 80%;
+  height: 15%;
+  font-weight: bold;
+  font-size: larger;
+}
+
+.NoteText {
+  top: 25%;
+  left: 5%;
+  height: 68%;
+  width: 80%;
+}
+
+.titleTextLine {
+  position: absolute;
+  left:5%;
+  top: 18%;
+  width: 82%;
+  border: solid;
+  border-width:1px;
+  border-color: silver;
 }
 
 .Options {
   position: absolute;
   text-align: left;
-  right: -25px;
+  right: -12%;
   display: inline-block;
 }
 
@@ -66,13 +90,13 @@
 
 .DoneButton {
   position: absolute;
-  top: 205px;
+  top: 103%;
 }
 
 .CancelButton {
   position: absolute;
-  left: 60px;
-  top: 205px;
+  left: 30%;
+  top: 103%;
 }
 
 button {

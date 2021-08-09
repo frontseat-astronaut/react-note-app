@@ -5,10 +5,7 @@ var ScrollElement  = Scroll.Element;
 var scroller = Scroll.scroller;
 
 let defaultNotes = [
-  "Note #1\nA note is a string of text placed at the bottom of a page in a book or document or at the end of a chapter, volume or the whole text. The note can provide an author's comments on the main text or citations of a reference work in support of the text.\nFootnotes are notes at the foot of the page while endnotes are collected under a separate heading at the end of a chapter, volume, or entire work. Unlike footnotes, endnotes have the advantage of not affecting the layout of the main text, but may cause inconvenience to readers who have to move back and forth between the main text and the endnotes.\nIn some editions of the Bible, notes are placed in a narrow column in the middle of each page between two columns of biblical text.",
-  "Note #2",
-  "Note #3",
-  "Note #4",
+  "A note is a string of text placed at the bottom of a page in a book or document or at the end of a chapter, volume or the whole text. The note can provide an author's comments on the main text or citations of a reference work in support of the text.\nFootnotes are notes at the foot of the page while endnotes are collected under a separate heading at the end of a chapter, volume, or entire work. Unlike footnotes, endnotes have the advantage of not affecting the layout of the main text, but may cause inconvenience to readers who have to move back and forth between the main text and the endnotes.\nIn some editions of the Bible, notes are placed in a narrow column in the middle of each page between two columns of biblical text.",
 ];
 
 class Note extends React.Component {
@@ -18,13 +15,12 @@ class Note extends React.Component {
     this.deleteNote = props.deleteNote;
     this.parentRefresh = props.parentRefresh;
 
-    this.state = { "text": props.text, "newText": props.text, "isTyping": (props.justCreated) ? true : false, "justCreated": props.justCreated };
+    this.state = { "title": props.title, "newTitle": props.title, "text": props.text, "newText": props.text, "isTyping": ((props.justCreated) ? true : false), "justCreated": props.justCreated };
 
     this.editNote = this.editNote.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleCancel = this.handleCancel.bind(this);
-
   }
 
   componentDidMount(){
@@ -33,17 +29,24 @@ class Note extends React.Component {
   }
 
   editNote(event) {
-    this.setState({ "isTyping": true, "newText": this.state.text });
+    this.setState({ "isTyping": true, "newText": this.state.text, "newTitle": this.state.title });
     this.parentRefresh();
   }
 
-  handleChange(event) {
-    this.setState({ "newText": event.target.value });
-    this.parentRefresh();
+  handleChange(firstCapField)
+  {
+    let handleChangeFn = function(event) {
+      let value = event.target.value;
+      if(firstCapField=="Title")
+        value = value.replace("\n", "");
+      this.setState({ [`new${firstCapField}`]: value });
+      this.parentRefresh();
+    }
+    return handleChangeFn.bind(this);
   }
 
   handleSubmit(event) {
-    this.setState({ "isTyping": false, "text": this.state.newText, "justCreated": false });
+    this.setState({ "isTyping": false, "text": this.state.newText, "title": this.state.newTitle, "justCreated": false });
     this.parentRefresh();
   }
 
@@ -54,6 +57,14 @@ class Note extends React.Component {
     }
     this.setState({ "isTyping": false });
     this.parentRefresh();
+  }
+
+  textBody(field, autoFocus=true) {
+    let firstCapField = field.charAt(0).toUpperCase() + field.slice(1);
+    if(this.state.isTyping)
+      return <textarea autoFocus={autoFocus} className={`Note${firstCapField}`} value={this.state[`new${firstCapField}`]} readOnly={false} onChange={this.handleChange(firstCapField)} />;
+    else 
+      return <textarea className={`Note${firstCapField}`} value={this.state[field]} readOnly={true} />;
   }
 
   render() {
@@ -68,16 +79,16 @@ class Note extends React.Component {
             </div>
           ) : (null)
         }
+        {this.textBody('title')} <br />
+        <hr className="titleTextLine" />
+        {this.textBody('text', false)}
         {
           (this.state.isTyping) ? (
             <div>
-              <textarea autoFocus className="NoteText" value={this.state.newText} readOnly={false} onChange={this.handleChange} /> <br />
               <button className="DoneButton" onClick={this.handleSubmit}> Done </button>
               <button className="CancelButton" onClick={this.handleCancel}> Cancel </button>
             </div>
-          ) : (
-            <textarea className="NoteText" value={this.state.text} readOnly={true} />
-          )
+          ) : (null)
         }
       </div>
     );
@@ -90,23 +101,22 @@ class App extends React.Component {
 
     this.createNote = this.createNote.bind(this);
     this.displayNotes = this.displayNotes.bind(this);
-    this.newNoteButton = this.newNoteButton.bind(this);
     this.handleNewNote = this.handleNewNote.bind(this);
     this.deleteNote = this.deleteNote.bind(this);
     this.refresh = this.refresh.bind(this);
 
     let jsxNotes = {}
     for (let i = 0; i < defaultNotes.length; ++i) {
-      jsxNotes[i] = this.createNote(i, defaultNotes[i], false);
+      jsxNotes[i] = this.createNote(i, `Note ${i+1}`, defaultNotes[i], false);
     }
     this.state = { "notes": jsxNotes, "editMode": false, "totalNotesCounter": Object.keys(jsxNotes).length };
   }
 
-  createNote(key, initText, justCreated) {
+  createNote(key, initTitle, initText, justCreated) {
     return (
       <div key={key}>
       <ScrollElement name={`Note ${key}`}></ScrollElement>
-      <Note text={initText} deleteNote={this.deleteNote(key)} parentRefresh={this.refresh(key)} justCreated={justCreated} />
+      <Note title={initTitle} text={initText} deleteNote={this.deleteNote(key)} parentRefresh={this.refresh(key)} justCreated={justCreated} />
       </div>);
   }
 
@@ -126,16 +136,8 @@ class App extends React.Component {
     );
   }
 
-  newNoteButton() {
-    return (
-      <button onClick={this.handleNewNote}>
-        + Add Note
-      </button>
-    );
-  }
-
   handleNewNote(event) {
-    let newNote = this.createNote(this.state.totalNotesCounter, "", true);
+    let newNote = this.createNote(this.state.totalNotesCounter, "", "", true);
     let newNotes = this.state.notes;
     newNotes[this.state.totalNotesCounter] = newNote;
     this.setState({ "editMode": true, "totalNotesCounter": this.state.totalNotesCounter + 1 });
@@ -157,7 +159,9 @@ class App extends React.Component {
       <div className="App">
         <h1 className="Heading">NOTES</h1>
         <br />
-        {this.newNoteButton()}
+        <button onClick={this.handleNewNote}>
+          + Add Note
+        </button>
         <br /> <br />
         {this.displayNotes()}
       </div>
