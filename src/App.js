@@ -18,20 +18,44 @@ class Note extends React.Component {
     this.key = props.key;
     this.deleteNote = props.deleteNote;
 
-    this.state = { "text": props.text };
+    this.state = { "text": props.text, "isTyping": false };
+
+    this.editNote = this.editNote.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  editNote(event) {
+    this.setState({ "isTyping": true });
+  }
+
+  handleChange(event) {
+    this.setState({ "text": event.target.value });
+  }
+
+  handleSubmit(event) {
+    this.setState({ "isTyping": false });
   }
 
   render() {
+    console.log("Rendering!");
     return (
       <div className="Note">
-        <div className="Options">
-          <button className="OptionsButton" >...</button>
-          <div className="DropdownOptions">
-            <a href="#" >Edit</a><br />
-            <a href="#" onClick={this.deleteNote}>Delete</a>
-          </div>
-        </div>
-        <textarea className="NoteText" value={this.state.text} readOnly />
+        {
+          (!this.state.isTyping)?(
+            <div className="Options">
+              <button className="OptionsButton" >...</button>
+              <div className="DropdownOptions">
+                <a href="#" onClick={this.editNote}>Edit</a><br />
+                <a href="#" onClick={this.deleteNote}>Delete</a>
+              </div>
+            </div>
+          ):(null)
+        }
+        <textarea className="NoteText" value={this.state.text} readOnly={!this.state.isTyping} onChange={this.handleChange} />
+        {
+          (this.state.Typing)?(<button onClick={this.handleSubmit}>Submit</button>):(null)
+        }
       </div>
     );
   }
@@ -41,20 +65,16 @@ class App extends React.Component {
   constructor(props) {
     super(props);
 
-    this.handleNewNote = this.handleNewNote.bind(this);
-    this.newNoteButton = this.newNoteButton.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleCancel = this.handleCancel.bind(this);
     this.displayNotes = this.displayNotes.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.enterNote = this.enterNote.bind(this);
+    this.newNoteButton = this.newNoteButton.bind(this);
+    this.handleNewNote = this.handleNewNote.bind(this);
     this.deleteNote = this.deleteNote.bind(this);
 
     let jsxNotes = {}
     for (let i = 0; i < defaultNotes.length; ++i) {
       jsxNotes[i] = <Note text={defaultNotes[i]} key={i} deleteNote={this.deleteNote(i)} />;
     }
-    this.state = { "notes": jsxNotes, "isTyping": false, "newNote": "", "totalNotesCounter": jsxNotes.length };
+    this.state = { "notes": jsxNotes, "editMode": false, "totalNotesCounter": jsxNotes.length };
   }
 
   displayNotes() {
@@ -74,35 +94,8 @@ class App extends React.Component {
   }
 
   handleNewNote(event) {
-    this.setState({ "isTyping": true });
-    event.preventDefault();
-  }
-
-  handleChange(event) {
-    this.setState({ "newNote": event.target.value });
-  }
-
-  handleSubmit(event) {
-    event.preventDefault();
-    let newNotes = this.state.notes;
-    newNotes[this.state.totalNotesCounter] = <Note text={this.state.newNote} key={newNotes.length} deleteNote={this.deleteNote(newNotes.length)} />;
-    this.setState({ "notes": newNotes, "isTyping": false, "newNote": "", "totalNotesCounter": this.state.totalNotesCounter+1 });
-  }
-
-  handleCancel(event) {
-    event.preventDefault();
-    this.setState({ "isTyping": false, "newNote": "" });
-  }
-
-  enterNote() {
-    return (
-      <form onSubmit={this.handleSubmit}>
-        <textarea value={this.state.newNote} onChange={this.handleChange} className="TextInput" />
-        <br />
-        <button type="submit" >Done</button>
-        <button onClick={this.handleCancel}>Cancel</button>
-      </form>
-    );
+    let newNote = <Note
+    this.setState({"editMode": true})
   }
 
   deleteNote(key) {
@@ -119,7 +112,7 @@ class App extends React.Component {
       <div className="App">
         <h1 className="Heading">NOTES</h1>
         <br />
-        {(!this.state.isTyping) ? this.newNoteButton() : this.enterNote()}
+        {this.newNoteButton()}
         <br /> <br />
         {this.displayNotes()}
       </div>
