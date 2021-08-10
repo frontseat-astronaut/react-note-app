@@ -6,6 +6,13 @@ var scroller = Scroll.scroller;
 
 let defaultNotes = [
   "A note is a string of text placed at the bottom of a page in a book or document or at the end of a chapter, volume or the whole text. The note can provide an author's comments on the main text or citations of a reference work in support of the text.\nFootnotes are notes at the foot of the page while endnotes are collected under a separate heading at the end of a chapter, volume, or entire work. Unlike footnotes, endnotes have the advantage of not affecting the layout of the main text, but may cause inconvenience to readers who have to move back and forth between the main text and the endnotes.\nIn some editions of the Bible, notes are placed in a narrow column in the middle of each page between two columns of biblical text.",
+  "dkosad",
+  "dkosad",
+  "dkosad",
+  "dkosad",
+  "dkosad",
+  "dkosad",
+  "dkosad",
 ];
 
 function Note(props) {
@@ -62,11 +69,12 @@ class App extends React.Component {
     this.deleteNote = this.deleteNote.bind(this);
 
     this._toJSXNote = this._toJSXNote.bind(this);
+    this._scrollToNote = this._scrollToNote.bind(this);
 
     let notes = {}
     for (let i = 0; i < defaultNotes.length; ++i)
       notes[i] = this.createNote(`Note #${i+1}`, defaultNotes[i], false);
-    this.state = { "notes": notes, "totalNotesCounter": Object.keys(notes).length };
+    this.state = { "notes": notes, "totalNotesCounter": Object.keys(notes).length, "focusedNote": -1 };
   }
 
   createNote(title, text, justCreated) {
@@ -114,16 +122,15 @@ class App extends React.Component {
       let note = this.createNote("", "", true);
       let notes = state.notes;
       notes[state.totalNotesCounter] = note;
-      return { "notes": notes, "totalNotesCounter": state.totalNotesCounter + 1 };
+      return { "notes": notes, "totalNotesCounter": state.totalNotesCounter + 1, "focusedNote": state.totalNotesCounter};
     });
   }
 
   editNote(key) {
     let editNote = function (event) {
       this.setState((state) => {
-        updateObject(state.notes[key], { "isTyping": true, "newTitle": state.notes[key].title, "newText": state.notes[key].text });
-        console.log(state.notes[key]);
-        return { "notes": state.notes }
+        updateObject(state.notes[key], { "isTyping": true, "newTitle": state.notes[key].title, "newText": state.notes[key].text});
+        return { "notes": state.notes, "focusedNote": key }
       });
     };
     return editNote.bind(this);
@@ -137,7 +144,7 @@ class App extends React.Component {
           if (firstCapField == "Title")
             value = value.replace("\n", "");
           updateObject(state.notes[key], { [`new${firstCapField}`]: value });
-          return { "notes": state.notes };
+          return { "notes": state.notes, "focusedNote": key  };
         });
       }
       return handleChange.bind(this);
@@ -150,7 +157,7 @@ class App extends React.Component {
       this.setState((state) => {
         let note = state.notes[key];
         updateObject(note, { "isTyping": false, "text": note.newText, "title": note.newTitle, "justCreated": false });
-        return { "notes": state.notes };
+        return { "notes": state.notes, "focusedNote": key };
       });
     };
     return handleSubmit.bind(this);
@@ -159,12 +166,11 @@ class App extends React.Component {
   handleCancel(key) {
     let handleCancel = function(event) {
       let note = this.state.notes[key];
-      console.assert(note!=undefined);
       if (note.justCreated)
         delete this.state.notes[key];
       else
         updateObject(note, { "isTyping": false });
-      this.setState({ "notes": this.state.notes });
+      this.setState({ "notes": this.state.notes, "focusedNote": key });
     };
     return handleCancel.bind(this);
   }
@@ -173,9 +179,18 @@ class App extends React.Component {
     let handleDelete = function (event) {
       if(window.confirm("Delete Note?"))
         delete this.state.notes[key];
-      this.setState({"notes": this.state.notes});
+      this.setState({"notes": this.state.notes, "focusedNote": -1});
     };
     return handleDelete.bind(this);
+  }
+
+  _scrollToNote(){
+    if(this.state.focusedNote <0) return;
+    scroller.scrollTo(`Note ${this.state.focusedNote}`, {"smooth": true});
+  }
+
+  componentDidUpdate(){
+    this._scrollToNote();
   }
 
   render() {
