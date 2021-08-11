@@ -4,15 +4,16 @@ var Scroll = require('react-scroll');
 var ScrollElement = Scroll.Element;
 var scroller = Scroll.scroller;
 
+let loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum";
+
 let defaultNotes = [
-  "A note is a string of text placed at the bottom of a page in a book or document or at the end of a chapter, volume or the whole text. The note can provide an author's comments on the main text or citations of a reference work in support of the text.\nFootnotes are notes at the foot of the page while endnotes are collected under a separate heading at the end of a chapter, volume, or entire work. Unlike footnotes, endnotes have the advantage of not affecting the layout of the main text, but may cause inconvenience to readers who have to move back and forth between the main text and the endnotes.\nIn some editions of the Bible, notes are placed in a narrow column in the middle of each page between two columns of biblical text.",
-  "dkosad",
-  "dkosad",
-  "dkosad",
-  "dkosad",
-  "dkosad",
-  "dkosad",
-  "dkosad",
+  ["C", loremIpsum.slice(0, 20)],
+  ["G", loremIpsum.slice(4, 20)],
+  ["B", loremIpsum.slice(2, 5)],
+  ["E", loremIpsum.slice(20)],
+  ["A", loremIpsum.slice(80, 200)],
+  ["F", loremIpsum.slice(10, 40)],
+  ["D", loremIpsum],
 ];
 
 function Note(props) {
@@ -60,6 +61,7 @@ class App extends React.Component {
     super(props);
 
     this.createNote = this.createNote.bind(this);
+    this.changeOrder = this.changeOrder.bind(this);
     this.displayNotes = this.displayNotes.bind(this);
     this.handleNewNote = this.handleNewNote.bind(this);
     this.editNote = this.editNote.bind(this);
@@ -73,11 +75,17 @@ class App extends React.Component {
 
     let notes = {}
     for (let i = 0; i < defaultNotes.length; ++i)
-      notes[i] = this.createNote(`Note #${i+1}`, defaultNotes[i], false);
-    this.state = { "notes": notes, "totalNotesCounter": Object.keys(notes).length, "focusedNote": -1 };
+      notes[i] = this.createNote(defaultNotes[i][0], defaultNotes[i][1], false, i);
+    this.state = { 
+      "notes": notes,
+      "totalNotesCounter": Object.keys(notes).length,
+      "focusedNote": -1,
+      "sortBy": "time",
+    };
   }
 
-  createNote(title, text, justCreated) {
+  createNote(title, text, justCreated, time) {
+    console.log(time);
     return {
       "title": title,
       "newTitle": "",
@@ -85,6 +93,7 @@ class App extends React.Component {
       "newText": "",
       "isTyping": (justCreated) ? true : false,
       "justCreated": justCreated,
+      "time": time,
     };
   }
 
@@ -109,17 +118,37 @@ class App extends React.Component {
     );
   }
 
+  changeOrder(value){
+    let fn = function (event){
+      this.setState({"sortBy": value});
+    }
+    return fn.bind(this);
+  }
+
   displayNotes() {
+    // comparison functions
+    let byTime = (a, b) => {return b[1].time-a[1].time};
+    let byTitle = (a, b) => {return (a[1].title<b[1].title)?-1:1}; // lexicographic compare
+
+    let sortFn;
+    switch(this.state.sortBy){
+      case "title": sortFn = byTitle; break;
+      default: sortFn = byTime;
+    }
+
+    let arrNotes = Array.from(Object.entries(this.state.notes));
+    arrNotes.sort(sortFn);
+
     return (
       <div className="NotesGrid">
-        {Object.entries(this.state.notes).map(this._toJSXNote)}
+        {arrNotes.map(this._toJSXNote)}
       </div>
     );
   }
 
   handleNewNote(event) {
     this.setState((state) => {
-      let note = this.createNote("", "", true);
+      let note = this.createNote("", "", true, state.totalNotesCounter);
       let notes = state.notes;
       notes[state.totalNotesCounter] = note;
       return { "notes": notes, "totalNotesCounter": state.totalNotesCounter + 1, "focusedNote": state.totalNotesCounter};
@@ -198,10 +227,15 @@ class App extends React.Component {
       <div className="App">
         <h1 className="Heading">NOTES</h1>
         <br />
-        <button onClick={this.handleNewNote}>
-          + Add Note
-        </button>
-        <br /> <br />
+        <div className="AppOptions">
+          <button className="AddNoteOption" onClick={this.handleNewNote}> + Add Note </button>
+          <div className="SortOptions"> 
+            Sort By:&nbsp; 
+            <button onClick={this.changeOrder("time")}> Time </button>
+            <button onClick={this.changeOrder("title")}> Title </button>
+          </div>
+        </div>
+        <br /> <br /> <br />
         {this.displayNotes()}
       </div>
     );

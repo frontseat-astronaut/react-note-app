@@ -1,4 +1,4 @@
-.Heading, .TextInput, .titleTextLine, button, .NoteText, .NoteTitle, .DropdownOptions, a, .Note, .EditingNote {
+.Heading, .TextInput, .titleTextLine, button, .NoteText, .NoteTitle, .DropdownOptions, a, .Note, .EditingNote, .AppOptions {
   white-space: pre-wrap;
   color: white;
   background-color: transparent;
@@ -10,7 +10,8 @@
 
 .Heading {
   position: relative;
-  left: 40%;
+  text-align: center;
+  width: 100%;
 }
 
 ::-webkit-scrollbar {
@@ -18,10 +19,21 @@
   background: transparent;
 }
 
+.AddNoteOption{
+  position: absolute;
+}
+
+.SortOptions {
+  position: absolute;
+  right: 0%;
+  width: fit-content;
+  font-size: 14px;
+}
+
 .NotesGrid {
   display: grid;
   grid-gap: 50px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
 }
 
 .Note, .EditingNote {
