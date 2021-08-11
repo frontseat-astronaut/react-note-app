@@ -88,7 +88,7 @@ class App extends React.Component {
 
     let notes = {}
     for (let i = 0; i < defaultNotes.length; ++i)
-      notes[i] = this.createNote(defaultNotes[i][0], defaultNotes[i][1], true, i);
+      notes[i] = this.createNote(defaultNotes[i][0], defaultNotes[i][1], false, i);
     this.state = {
       "notes": notes,
       "totalNotesCounter": Object.keys(notes).length,
