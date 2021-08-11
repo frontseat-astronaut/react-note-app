@@ -7,13 +7,13 @@ var scroller = Scroll.scroller;
 let loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum";
 
 let defaultNotes = [
-  ["C", loremIpsum.slice(0, 20)],
-  ["G", loremIpsum.slice(4, 20)],
-  ["B", loremIpsum.slice(2, 5)],
-  ["E", loremIpsum.slice(20)],
-  ["A", loremIpsum.slice(80, 200)],
-  ["F", loremIpsum.slice(10, 40)],
-  ["D", loremIpsum],
+  ["CAB", loremIpsum.slice(0, 20)],
+  ["CAB RIDE", loremIpsum.slice(4, 20)],
+  ["BATTLE", loremIpsum.slice(2, 5)],
+  ["EAT", loremIpsum.slice(20)],
+  ["ATLAS", loremIpsum.slice(80, 200)],
+  ["FALCON", loremIpsum.slice(10, 40)],
+  ["DALTON", loremIpsum],
 ];
 
 function Note(props) {
@@ -21,7 +21,7 @@ function Note(props) {
   let textBody = function (field, autoFocus = true) {
     let firstCapField = field.charAt(0).toUpperCase() + field.slice(1);
     if (props.isTyping)
-      return <textarea autoFocus={autoFocus} className={`Note${firstCapField}`} value={props[`new${firstCapField}`]} readOnly={false} onChange={props.handleChange(firstCapField)} />;
+      return <textarea autoFocus={autoFocus} className={`Note${firstCapField}`} value={props[`new${firstCapField}`]} readOnly={false} onChange={props.handleChangeNote(firstCapField)} />;
     else
       return <textarea className={`Note${firstCapField}`} value={props[field]} readOnly={true} />;
   }
@@ -63,9 +63,10 @@ class App extends React.Component {
     this.createNote = this.createNote.bind(this);
     this.changeOrder = this.changeOrder.bind(this);
     this.displayNotes = this.displayNotes.bind(this);
+    this.handleChangeSearch = this.handleChangeSearch.bind(this);
     this.handleNewNote = this.handleNewNote.bind(this);
     this.editNote = this.editNote.bind(this);
-    this.handleChange = this.handleChange.bind(this);
+    this.handleChangeNote = this.handleChangeNote.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleCancel = this.handleCancel.bind(this);
     this.deleteNote = this.deleteNote.bind(this);
@@ -81,11 +82,11 @@ class App extends React.Component {
       "totalNotesCounter": Object.keys(notes).length,
       "focusedNote": -1,
       "sortBy": "time",
+      "searchString": "",
     };
   }
 
   createNote(title, text, justCreated, time) {
-    console.log(time);
     return {
       "title": title,
       "newTitle": "",
@@ -109,7 +110,7 @@ class App extends React.Component {
           isTyping={note.isTyping}
           justCreated={note.justCreated}
           editNote={this.editNote(key)}
-          handleChange={this.handleChange(key)}
+          handleChangeNote={this.handleChangeNote(key)}
           handleSubmit={this.handleSubmit(key)}
           handleCancel={this.handleCancel(key)}
           deleteNote={this.deleteNote(key)}
@@ -120,7 +121,7 @@ class App extends React.Component {
 
   changeOrder(value){
     let fn = function (event){
-      this.setState({"sortBy": value});
+      this.setState({"sortBy": value, "focusedNote": -1});
     }
     return fn.bind(this);
   }
@@ -139,11 +140,20 @@ class App extends React.Component {
     let arrNotes = Array.from(Object.entries(this.state.notes));
     arrNotes.sort(sortFn);
 
+    // filter out notes that don't follow constraints
+    let filteredNotes = arrNotes.filter(([_, note])=>{
+      return note.title.toLowerCase().includes(this.state.searchString.toLowerCase());
+    });
+
     return (
       <div className="NotesGrid">
-        {arrNotes.map(this._toJSXNote)}
+        {filteredNotes.map(this._toJSXNote)}
       </div>
     );
+  }
+
+  handleChangeSearch(event) {
+    this.setState({"searchString": event.target.value});
   }
 
   handleNewNote(event) {
@@ -151,7 +161,7 @@ class App extends React.Component {
       let note = this.createNote("", "", true, state.totalNotesCounter);
       let notes = state.notes;
       notes[state.totalNotesCounter] = note;
-      return { "notes": notes, "totalNotesCounter": state.totalNotesCounter + 1, "focusedNote": state.totalNotesCounter};
+      return { "notes": notes, "totalNotesCounter": state.totalNotesCounter + 1, "focusedNote": state.totalNotesCounter, "searchString":""};
     });
   }
 
@@ -165,9 +175,9 @@ class App extends React.Component {
     return editNote.bind(this);
   }
 
-  handleChange(key) {
-    let handleChange = function (firstCapField) {
-      let handleChange = function (event) {
+  handleChangeNote(key) {
+    let handleChangeNote = function (firstCapField) {
+      let handleChangeNote = function (event) {
         this.setState((state) => {
           let value = event.target.value;
           if (firstCapField == "Title")
@@ -176,9 +186,9 @@ class App extends React.Component {
           return { "notes": state.notes, "focusedNote": key  };
         });
       }
-      return handleChange.bind(this);
+      return handleChangeNote.bind(this);
     }
-    return handleChange.bind(this);
+    return handleChangeNote.bind(this);
   }
 
   handleSubmit(key) {
@@ -227,13 +237,12 @@ class App extends React.Component {
       <div className="App">
         <h1 className="Heading">NOTES</h1>
         <br />
-        <div className="AppOptions">
-          <button className="AddNoteOption" onClick={this.handleNewNote}> + Add Note </button>
-          <div className="SortOptions"> 
-            Sort By:&nbsp; 
-            <button onClick={this.changeOrder("time")}> Time </button>
-            <button onClick={this.changeOrder("title")}> Title </button>
-          </div>
+        <button className="AddNoteOption" onClick={this.handleNewNote}> + Add Note </button>
+        <textarea className="Search" value={this.state.searchString} onChange={this.handleChangeSearch}></textarea>
+        <div className="SortOptions"> 
+          Sort By:&nbsp; 
+          <button onClick={this.changeOrder("time")}> Time </button>
+          <button onClick={this.changeOrder("title")}> Title </button>
         </div>
         <br /> <br /> <br />
         {this.displayNotes()}

@@ -1,4 +1,4 @@
-.Heading, .TextInput, .titleTextLine, button, .NoteText, .NoteTitle, .DropdownOptions, a, .Note, .EditingNote, .AppOptions {
+* {
   white-space: pre-wrap;
   color: white;
   background-color: transparent;
@@ -9,7 +9,6 @@
 }
 
 .Heading {
-  position: relative;
   text-align: center;
   width: 100%;
 }
@@ -19,8 +18,21 @@
   background: transparent;
 }
 
+.AppOptions{
+  width: 20%;
+  height: 20%;
+}
+
 .AddNoteOption{
   position: absolute;
+}
+
+.Search {
+  position: absolute;
+  right:40%;
+  width: 20%;
+  height: 3.5%;
+  resize: none;
 }
 
 .SortOptions {
