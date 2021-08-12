@@ -63,6 +63,7 @@ textarea:hover {
   color:rgb(180, 180, 180);
   font-size: 80%;
   resize: none;
+  border-style: solid;
 }
 
 .SortOptions {

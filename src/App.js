@@ -86,8 +86,8 @@ function Note(props) {
 function SearchBar(props) {
   return (<div className="Search">
     {(props.searchString == "") ?
-      <textarea className="DefaultSearchText" value={"Search by Title..."} readOnly /> : (null)}
-    <textarea className="SearchText" value={props.searchString} onChange={props.handleChangeSearch} />
+      <input className="DefaultSearchText" value={"Search by Title..."} readOnly /> : (null)}
+    <input className="SearchText" value={props.searchString} onChange={props.handleChangeSearch} />
   </div>);
 }
 
