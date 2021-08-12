@@ -17,7 +17,7 @@ let defaultNotes = [
 ];
 
 function CharCounter(props) {
-  let className = (props.text.length>props.charLimit)?"badCharCounter":"charCounter";
+  let className = (props.text.length > props.charLimit) ? "badCharCounter" : "charCounter";
   return <div className={className}>{props.text.length}/{props.charLimit}</div>;
 }
 
@@ -29,7 +29,7 @@ function Note(props) {
       return (
         <div>
           <textarea autoFocus={autoFocus} className={`Note${firstCapField}`} value={props[`new${firstCapField}`]} readOnly={false} onChange={props.handleChangeNote(firstCapField)} />
-          {(field=="text")? <CharCounter text={props[`new${firstCapField}`]} charLimit={props.charLimit}/>:(null)}
+          {(field == "text") ? <CharCounter text={props[`new${firstCapField}`]} charLimit={props.charLimit} /> : (null)}
         </div>
       );
     else
@@ -62,6 +62,14 @@ function Note(props) {
   );
 }
 
+function SearchBar(props) {
+  return (<div className="Search">
+    {(props.searchString == "") ?
+      <textarea className="DefaultSearchText" value={"Search by Title..."} readOnly /> : (null)}
+    <textarea className="SearchText" value={props.searchString} onChange={props.handleChangeSearch} />
+  </div>);
+}
+
 function updateObject(obj, props) {
   Object.entries(props).forEach(([prop, value]) => { obj[prop] = value; });
 }
@@ -69,7 +77,7 @@ function updateObject(obj, props) {
 class App extends React.Component {
   constructor(props) {
     super(props);
-    
+
     this.charLimit = 400;
 
     this.createNote = this.createNote.bind(this);
@@ -166,7 +174,7 @@ class App extends React.Component {
   }
 
   handleChangeSearch(event) {
-    this.setState({ "searchString": event.target.value });
+    this.setState({ "searchString": event.target.value, "focusedNote": -1 });
   }
 
   handleNewNote(event) {
@@ -208,7 +216,7 @@ class App extends React.Component {
     let handleSubmit = function (event) {
       this.setState((state) => {
         let note = state.notes[key];
-        if(note.newText.length > this.charLimit)
+        if (note.newText.length > this.charLimit)
           return {};
         updateObject(note, { "isTyping": false, "text": note.newText, "title": note.newTitle, "justCreated": false });
         return { "notes": state.notes, "focusedNote": key };
@@ -224,7 +232,7 @@ class App extends React.Component {
         delete this.state.notes[key];
       else
         updateObject(note, { "isTyping": false });
-      this.setState({ "notes": this.state.notes, "focusedNote": key });
+      this.setState({ "notes": this.state.notes, "focusedNote": -1 });
     };
     return handleCancel.bind(this);
   }
@@ -240,7 +248,7 @@ class App extends React.Component {
 
   _scrollToNote() {
     if (this.state.focusedNote < 0) return;
-    scroller.scrollTo(`Note ${this.state.focusedNote}`, { "smooth": true });
+    scroller.scrollTo(`Note ${this.state.focusedNote}`, { "smooth": true, duration: 500 });
   }
 
   componentDidUpdate() {
@@ -253,7 +261,7 @@ class App extends React.Component {
         <h1 className="Heading">NOTES</h1>
         <br />
         <button className="AddNoteOption" onClick={this.handleNewNote}> + Add Note </button>
-        <textarea className="Search" value={this.state.searchString} onChange={this.handleChangeSearch}></textarea>
+        <SearchBar searchString={this.state.searchString} handleChangeSearch={this.handleChangeSearch} />
         <div className="SortOptions">
           Sort By:&nbsp;
           <button onClick={this.changeOrder("time")}> Time </button>
