@@ -8,11 +8,11 @@ let loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed d
 
 let defaultNotes = [
   ["CAB", loremIpsum.slice(0, 20)],
-  ["CAB RIDE", loremIpsum.slice(4, 20)],
-  ["BATTLE", loremIpsum.slice(2, 5)],
-  ["BALCONY", loremIpsum.slice(20)],
-  ["ATLAS", loremIpsum.slice(80, 200)],
-  ["attire", loremIpsum.slice(10, 40)],
+  ["CADENCE", loremIpsum.slice(4, 20)],
+  ["CANCEL", loremIpsum.slice(2, 5)],
+  ["AUTOCAD", loremIpsum.slice(20)],
+  ["CABIN", loremIpsum.slice(80, 200)],
+  ["cab", "aaaaaaa\n".repeat(50)],
   ["DALTON", loremIpsum],
 ];
 
@@ -21,20 +21,20 @@ function CharCounter(props) {
   return <div className={className}>{props.text.length}/{props.charLimit}</div>;
 }
 
-function Note(props) {
+function TextBody(props) {
+  if (props.isTyping)
+    return (
+      <div>
+        <textarea autoFocus={props.autoFocus} className={props.className} value={props.newValue} readOnly={false} onChange={props.handleChange} />
+        {(props.charCounter) ? <CharCounter text={props.newValue} charLimit={props.charLimit} /> : (null)}
+      </div>
+    );
+  else
+    return <textarea className={props.className} value={props.value} readOnly={true} />;
 
-  let textBody = function (field, autoFocus = true) {
-    let firstCapField = field.charAt(0).toUpperCase() + field.slice(1);
-    if (props.isTyping)
-      return (
-        <div>
-          <textarea autoFocus={autoFocus} className={`Note${firstCapField}`} value={props[`new${firstCapField}`]} readOnly={false} onChange={props.handleChangeNote(firstCapField)} />
-          {(field == "text") ? <CharCounter text={props[`new${firstCapField}`]} charLimit={props.charLimit} /> : (null)}
-        </div>
-      );
-    else
-      return <textarea className={`Note${firstCapField}`} value={props[field]} readOnly={true} />;
-  }
+}
+
+function Note(props) {
 
   return (
     <div className={(props.isTyping) ? "EditingNote" : "Note"}>
@@ -47,9 +47,28 @@ function Note(props) {
           </div>
         ) : (null)
       }
-      {textBody('title')} <br />
+
+      <TextBody 
+        className="NoteTitle"
+        isTyping={props.isTyping}
+        autoFocus={true} 
+        newValue={props.newTitle}
+        value={props.title} 
+        charCounter={false}
+        handleChange={props.handleChangeNote("Title")}
+      /> <br />
       <hr className="titleTextLine" />
-      {textBody('text', false)}
+      <TextBody 
+        className="NoteText"
+        isTyping={props.isTyping}
+        autoFocus={false} 
+        newValue={props.newText}
+        value={props.text} 
+        charCounter={true}
+        charLimit={props.charLimit}
+        handleChange={props.handleChangeNote("Text")}
+      />
+
       {
         (props.isTyping) ? (
           <div>
