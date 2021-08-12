@@ -22,6 +22,7 @@ function CharCounter(props) {
 }
 
 function TextBody(props) {
+  let paddedLines = ('\n').repeat(props.padLines??0);
   if (props.isTyping)
     return (
       <div>
@@ -30,7 +31,7 @@ function TextBody(props) {
       </div>
     );
   else
-    return <textarea className={props.className} value={props.value} readOnly={true} />;
+    return <textarea className={props.className} value={props.value+paddedLines} readOnly={true} />;
 
 }
 
@@ -66,6 +67,7 @@ function Note(props) {
         value={props.text} 
         charCounter={true}
         charLimit={props.charLimit}
+        padLines={1}
         handleChange={props.handleChangeNote("Text")}
       />
 
