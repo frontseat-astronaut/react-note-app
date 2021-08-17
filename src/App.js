@@ -1,24 +1,26 @@
 import './App.css';
-import React from 'react';
+import React, { useState } from 'react';
 var Scroll = require('react-scroll');
 var ScrollElement = Scroll.Element;
 var scroller = Scroll.scroller;
 
-let loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui";
 
-let defaultNotes = [
-  ["CAB", loremIpsum.slice(0, 20)],
-  ["CADENCE", loremIpsum.slice(4, 20)],
-  ["CANCEL", loremIpsum.slice(2, 5)],
-  ["AUTOCAD", loremIpsum.slice(20)],
-  ["CABIN", loremIpsum.slice(80, 200)],
+const LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui";
+const DEFAULT_NOTES = [
+  ["CAB", LOREM_IPSUM.slice(0, 20)],
+  ["CADENCE", LOREM_IPSUM.slice(4, 20)],
+  ["CANCEL", LOREM_IPSUM.slice(2, 5)],
+  ["AUTOCAD", LOREM_IPSUM.slice(20)],
+  ["CABIN", LOREM_IPSUM.slice(80, 200)],
   ["cab", "aaaaaaa\n".repeat(50)],
-  ["DALTON", loremIpsum],
+  ["DALTON", LOREM_IPSUM],
 ];
+const CHAR_LIMIT = 400;
+
 
 function CharCounter(props) {
-  let className = (props.text.length > props.charLimit) ? "badCharCounter" : "charCounter";
-  return <div className={className}>{props.text.length}/{props.charLimit}</div>;
+  let className = (props.text.length > CHAR_LIMIT) ? "badCharCounter" : "charCounter";
+  return <div className={className}>{props.text.length}/{props.CHAR_LIMIT}</div>;
 }
 
 function TextBody(props) {
@@ -27,7 +29,7 @@ function TextBody(props) {
     return (
       <div>
         <textarea autoFocus={props.autoFocus} className={props.className} value={props.newValue} readOnly={false} onChange={props.handleChange} />
-        {(props.charCounter) ? <CharCounter text={props.newValue} charLimit={props.charLimit} /> : (null)}
+        {(props.charCounter) ? <CharCounter text={props.newValue} CHAR_LIMIT={props.CHAR_LIMIT} /> : (null)}
       </div>
     );
   else
@@ -66,7 +68,7 @@ function Note(props) {
         newValue={props.newText}
         value={props.text} 
         charCounter={true}
-        charLimit={props.charLimit}
+        CHAR_LIMIT={props.CHAR_LIMIT}
         padLines={1}
         handleChange={props.handleChangeNote("Text")}
       />
@@ -95,51 +97,117 @@ function updateObject(obj, props) {
   Object.entries(props).forEach(([prop, value]) => { obj[prop] = value; });
 }
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
+function createNote(title, text, justCreated, time) {
+  return {
+    "title": title,
+    "newTitle": title,
+    "text": text,
+    "newText": text,
+    "isTyping": (justCreated) ? true : false,
+    "justCreated": justCreated,
+    "time": time,
+  };
+}
 
-    this.charLimit = 400;
+function App(){
 
-    this.createNote = this.createNote.bind(this);
-    this.changeOrder = this.changeOrder.bind(this);
-    this.displayNotes = this.displayNotes.bind(this);
-    this.handleChangeSearch = this.handleChangeSearch.bind(this);
-    this.handleNewNote = this.handleNewNote.bind(this);
-    this.editNote = this.editNote.bind(this);
-    this.handleChangeNote = this.handleChangeNote.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleCancel = this.handleCancel.bind(this);
-    this.deleteNote = this.deleteNote.bind(this);
+  let notes = {}
+  for (let i = 0; i < DEFAULT_NOTES.length; ++i)
+    notes[i] = createNote(DEFAULT_NOTES[i][0], DEFAULT_NOTES[i][1], false, i);
 
-    this._toJSXNote = this._toJSXNote.bind(this);
-    this._scrollToNote = this._scrollToNote.bind(this);
+  const initState = {
+    "notes": notes,
+    "totalNotesCounter": Object.keys(notes).length,
+    "focusedNote": -1,
+    "sortBy": "time",
+    "searchString": "",
+  };
+  const [state, updateState] = useState(initState);
 
-    let notes = {}
-    for (let i = 0; i < defaultNotes.length; ++i)
-      notes[i] = this.createNote(defaultNotes[i][0], defaultNotes[i][1], false, i);
-    this.state = {
-      "notes": notes,
-      "totalNotesCounter": Object.keys(notes).length,
-      "focusedNote": -1,
-      "sortBy": "time",
-      "searchString": "",
-    };
+  let setState = function(props){
+    let newState = Object.assign({}, state);
+    updateObject(newState, props);
+    updateState(newState);
+  };
+
+  let changeOrder = function(value) {
+    let fn = function (event) {
+      setState({ "sortBy": value, "focusedNote": -1 });
+    }
+    return fn;
   }
 
-  createNote(title, text, justCreated, time) {
-    return {
-      "title": title,
-      "newTitle": title,
-      "text": text,
-      "newText": text,
-      "isTyping": (justCreated) ? true : false,
-      "justCreated": justCreated,
-      "time": time,
-    };
+  let handleChangeSearch = function(event) {
+    setState({ "searchString": event.target.value, "focusedNote": -1 });
   }
 
-  _toJSXNote([key, note]) {
+  let handleNewNote = function(event) {
+    let note = createNote("", "", true, state.totalNotesCounter);
+    let notes = state.notes;
+    notes[state.totalNotesCounter] = note;
+    setState({ "notes": notes, "totalNotesCounter": state.totalNotesCounter + 1, "focusedNote": state.totalNotesCounter, "searchString": "" });
+  }
+
+  let editNote = function(key) {
+    let editNote = function (event) {
+      updateObject(state.notes[key], { "isTyping": true, "newTitle": state.notes[key].title, "newText": state.notes[key].text });
+      setState({ "notes": state.notes, "focusedNote": key });
+    };
+    return editNote;
+  }
+
+  let handleChangeNote = function(key) {
+    let handleChangeNote = function (firstCapField) {
+      let handleChangeNote = function (event) {
+        let value = event.target.value;
+        if (firstCapField == "Title")
+          value = value.replace("\n", "");
+        updateObject(state.notes[key], { [`new${firstCapField}`]: value });
+        setState({ "notes": state.notes, "focusedNote": key });
+      }
+      return handleChangeNote;
+    }
+    return handleChangeNote;
+  }
+
+  let handleSubmit = function(key) {
+    let handleSubmit = function (event) {
+      let note = state.notes[key];
+      if (note.newText.length > CHAR_LIMIT)
+        return {};
+      updateObject(note, { "isTyping": false, "text": note.newText, "title": note.newTitle, "justCreated": false });
+      setState({"notes": state.notes, "focusedNote": key });
+    };
+    return handleSubmit;
+  }
+
+  let handleCancel = function(key) {
+    let handleCancel = function (event) {
+      let note = state.notes[key];
+      if (note.justCreated)
+        delete state.notes[key];
+      else
+        updateObject(note, { "isTyping": false });
+      setState({ "notes": state.notes, "focusedNote": -1 });
+    };
+    return handleCancel;
+  }
+
+  let deleteNote = function(key) {
+    let handleDelete = function (event) {
+      if (window.confirm("Delete Note?"))
+        delete state.notes[key];
+      setState({ "notes": state.notes, "focusedNote": -1 });
+    };
+    return handleDelete;
+  }
+
+  let _scrollToNote = function() {
+    if (state.focusedNote < 0) return;
+    scroller.scrollTo(`Note ${state.focusedNote}`, { "smooth": true, duration: 500 });
+  }
+
+  let _toJSXNote = function([key, note]) {
     return (
       <div key={key}>
         <ScrollElement name={`Note ${key}`}></ScrollElement>
@@ -150,149 +218,64 @@ class App extends React.Component {
           newText={note.newText}
           isTyping={note.isTyping}
           justCreated={note.justCreated}
-          editNote={this.editNote(key)}
-          handleChangeNote={this.handleChangeNote(key)}
-          handleSubmit={this.handleSubmit(key)}
-          handleCancel={this.handleCancel(key)}
-          deleteNote={this.deleteNote(key)}
-          charLimit={this.charLimit}
+          editNote={editNote(key)}
+          handleChangeNote={handleChangeNote(key)}
+          handleSubmit={handleSubmit(key)}
+          handleCancel={handleCancel(key)}
+          deleteNote={deleteNote(key)}
+          CHAR_LIMIT={CHAR_LIMIT}
         />
       </div>
     );
   }
 
-  changeOrder(value) {
-    let fn = function (event) {
-      this.setState({ "sortBy": value, "focusedNote": -1 });
-    }
-    return fn.bind(this);
-  }
-
-  displayNotes() {
+  let displayNotes = function() {
     // comparison functions
     let byTime = (a, b) => { return b[1].time - a[1].time };
     let byTitle = (a, b) => { return (a[1].title.toLowerCase() < b[1].title.toLowerCase()) ? -1 : 1 }; // lexicographic compare
 
     let sortFn;
-    switch (this.state.sortBy) {
+    switch (state.sortBy) {
       case "title": sortFn = byTitle; break;
       default: sortFn = byTime;
     }
 
-    let arrNotes = Array.from(Object.entries(this.state.notes));
+    let arrNotes = Array.from(Object.entries(state.notes));
     arrNotes.sort(sortFn);
 
     // filter out notes that don't follow constraints
     let filteredNotes = arrNotes.filter(([_, note]) => {
-      return note.title.toLowerCase().startsWith(this.state.searchString.toLowerCase());
+      return note.title.toLowerCase().startsWith(state.searchString.toLowerCase());
     });
 
     return (
       <div className="NotesGrid">
-        {filteredNotes.map(this._toJSXNote)}
+        {filteredNotes.map(_toJSXNote)}
       </div>
     );
   }
 
-  handleChangeSearch(event) {
-    this.setState({ "searchString": event.target.value, "focusedNote": -1 });
-  }
 
-  handleNewNote(event) {
-    this.setState((state) => {
-      let note = this.createNote("", "", true, state.totalNotesCounter);
-      let notes = state.notes;
-      notes[state.totalNotesCounter] = note;
-      return { "notes": notes, "totalNotesCounter": state.totalNotesCounter + 1, "focusedNote": state.totalNotesCounter, "searchString": "" };
-    });
-  }
+  // TODO
+  // componentDidUpdate() {
+  //   _scrollToNote();
+  // }
 
-  editNote(key) {
-    let editNote = function (event) {
-      this.setState((state) => {
-        updateObject(state.notes[key], { "isTyping": true, "newTitle": state.notes[key].title, "newText": state.notes[key].text });
-        return { "notes": state.notes, "focusedNote": key }
-      });
-    };
-    return editNote.bind(this);
-  }
-
-  handleChangeNote(key) {
-    let handleChangeNote = function (firstCapField) {
-      let handleChangeNote = function (event) {
-        this.setState((state) => {
-          let value = event.target.value;
-          if (firstCapField == "Title")
-            value = value.replace("\n", "");
-          updateObject(state.notes[key], { [`new${firstCapField}`]: value });
-          return { "notes": state.notes, "focusedNote": key };
-        });
-      }
-      return handleChangeNote.bind(this);
-    }
-    return handleChangeNote.bind(this);
-  }
-
-  handleSubmit(key) {
-    let handleSubmit = function (event) {
-      this.setState((state) => {
-        let note = state.notes[key];
-        if (note.newText.length > this.charLimit)
-          return {};
-        updateObject(note, { "isTyping": false, "text": note.newText, "title": note.newTitle, "justCreated": false });
-        return { "notes": state.notes, "focusedNote": key };
-      });
-    };
-    return handleSubmit.bind(this);
-  }
-
-  handleCancel(key) {
-    let handleCancel = function (event) {
-      let note = this.state.notes[key];
-      if (note.justCreated)
-        delete this.state.notes[key];
-      else
-        updateObject(note, { "isTyping": false });
-      this.setState({ "notes": this.state.notes, "focusedNote": -1 });
-    };
-    return handleCancel.bind(this);
-  }
-
-  deleteNote(key) {
-    let handleDelete = function (event) {
-      if (window.confirm("Delete Note?"))
-        delete this.state.notes[key];
-      this.setState({ "notes": this.state.notes, "focusedNote": -1 });
-    };
-    return handleDelete.bind(this);
-  }
-
-  _scrollToNote() {
-    if (this.state.focusedNote < 0) return;
-    scroller.scrollTo(`Note ${this.state.focusedNote}`, { "smooth": true, duration: 500 });
-  }
-
-  componentDidUpdate() {
-    this._scrollToNote();
-  }
-
-  render() {
-    return (
-      <div className="App">
-        <h1 className="Heading">NOTES</h1>
-        <br />
-        <button className="AddNoteOption" onClick={this.handleNewNote}> + Add Note </button>
-        <SearchBar searchString={this.state.searchString} handleChangeSearch={this.handleChangeSearch} />
-        <div className="SortOptions">
-          Sort By:&nbsp;
-          <button onClick={this.changeOrder("time")}> Time </button>
-          <button onClick={this.changeOrder("title")}> Title </button>
-        </div>
-        <br /> <br /> <br /> <br />
-        {this.displayNotes()}
+  return (
+    <div className="App">
+      <h1 className="Heading">NOTES</h1>
+      <br />
+      <button className="AddNoteOption" onClick={handleNewNote}> + Add Note </button>
+      <SearchBar searchString={state.searchString} handleChangeSearch={handleChangeSearch} />
+      <div className="SortOptions">
+        Sort By:&nbsp;
+        <button onClick={changeOrder("time")}> Time </button>
+        <button onClick={changeOrder("title")}> Title </button>
       </div>
-    );
-  }
+      <br /> <br /> <br /> <br />
+      {displayNotes()}
+    </div>
+  );
 }
 
 export default App;
