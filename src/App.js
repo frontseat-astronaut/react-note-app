@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 var Scroll = require('react-scroll');
 var ScrollElement = Scroll.Element;
 var scroller = Scroll.scroller;
@@ -20,7 +20,7 @@ const CHAR_LIMIT = 400;
 
 function CharCounter(props) {
   let className = (props.text.length > CHAR_LIMIT) ? "badCharCounter" : "charCounter";
-  return <div className={className}>{props.text.length}/{props.CHAR_LIMIT}</div>;
+  return <div className={className}>{props.text.length}/{CHAR_LIMIT}</div>;
 }
 
 function TextBody(props) {
@@ -29,12 +29,11 @@ function TextBody(props) {
     return (
       <div>
         <textarea autoFocus={props.autoFocus} className={props.className} value={props.newValue} readOnly={false} onChange={props.handleChange} />
-        {(props.charCounter) ? <CharCounter text={props.newValue} CHAR_LIMIT={props.CHAR_LIMIT} /> : (null)}
+        {(props.charCounter) ? <CharCounter text={props.newValue} /> : (null)}
       </div>
     );
   else
     return <textarea className={props.className} value={props.value+paddedLines} readOnly={true} />;
-
 }
 
 function Note(props) {
@@ -68,7 +67,6 @@ function Note(props) {
         newValue={props.newText}
         value={props.text} 
         charCounter={true}
-        CHAR_LIMIT={props.CHAR_LIMIT}
         padLines={1}
         handleChange={props.handleChangeNote("Text")}
       />
@@ -223,7 +221,6 @@ function App(){
           handleSubmit={handleSubmit(key)}
           handleCancel={handleCancel(key)}
           deleteNote={deleteNote(key)}
-          CHAR_LIMIT={CHAR_LIMIT}
         />
       </div>
     );
@@ -255,11 +252,9 @@ function App(){
     );
   }
 
-
-  // TODO
-  // componentDidUpdate() {
-  //   _scrollToNote();
-  // }
+  useEffect(() => {
+    _scrollToNote();
+  });
 
   return (
     <div className="App">
