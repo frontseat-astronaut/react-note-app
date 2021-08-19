@@ -26,22 +26,55 @@ const NOTES_QUERY = gql`
     totalNotesCount
   }
 `;
+const EDIT_NOTE = gql`
+  mutation EditNote($id: ID!, $title: String!, $text: String!){
+      EditNote(id: $id, title: $title, text: $text){
+          id
+          time
+          title
+          text
+      }
+  }
+`;
 
 
 function Note(props){
-    return (
-        <div className="Note">
-            {props.title}
-            <br />
-            {props.text}
-        </div>
-    );
+    const [draft, changeDraft] = useState(null);
+    let handleEdit = ()=>{
+        changeDraft({title: props.title, text: props.text});
+    };
+    let handleChange = (field) => ((event)=>{
+        changeDraft({...draft, [field]: event.target.value});
+    }); 
+    let handleSubmit = ()=>{
+        props.editNote(draft);
+        changeDraft(null);
+    };
+    if(draft){
+        return (
+            <div className="EditingNote">
+                <h1><input value={draft.title} onChange={handleChange('title')}/> </h1>
+                <br />
+                <input value={draft.text} onChange={handleChange('text')}/>
+                <button onClick={handleSubmit}>Submit</button>
+            </div>
+        );
+    }
+    else
+        return (
+            <div className="Note">
+                <h1>{props.title} </h1>
+                <br />
+                {props.text}
+                <button onClick={handleEdit}>Edit</button>
+            </div>
+        );
 }
 
 
 function NotesGrid(props){
 
-    let notes = props.notes.map((note)=><Note title={note.title} text={note.text}/>);
+    let notes = props.notes.map((note)=><Note key={note.id} title={note.title} text={note.text} editNote={props.editNote(note.id)} />);
     return (
       <div className="NotesGrid">
         {notes}
@@ -53,21 +86,19 @@ function NotesGrid(props){
 function App(){
 
     const {loading, error, data} = useQuery(NOTES_QUERY);
+    const [editNoteMutation, {loading_, error_, _}] = useMutation(EDIT_NOTE);
 
-    const dataNotes = data && data.notes;
-    let totalNotesCount = data && data.totalNotesCount;
+    let editNote = (id) => ((draft)=>
+        editNoteMutation({
+            variables: {
+                ...draft,
+                id: id
+            }
+        })
+    );
 
-    const [drafts, updateDrafts] = useState({});
-    let notes;
-    if(dataNotes)
-    {
-        notes = dataNotes.map((note)=>
-            ({
-                ...note,
-                "draft": (note.id in drafts)?(drafts[note.id]):null,
-            })
-        );
-    }
+    const notes = data && data.notes;
+    const totalNotesCount = data && data.totalNotesCount;
 
     if(loading)
         return <div>Loading...</div>
@@ -85,7 +116,7 @@ function App(){
             {/* <button onClick={changeOrder("title")}> Title </button> */}
             {/* </div> */}
             <br /> <br /> <br /> <br />
-            <NotesGrid notes={notes}/>
+            <NotesGrid notes={notes} editNote={editNote}/>
         </div>
 
     );

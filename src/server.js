@@ -19,30 +19,36 @@ const typeDefs = gql`
 	}
 
 	type Mutation{
-		addNote(title: String!, text: String!): Note
+		CreateNote: Note!
+        EditNote(id: ID!, title: String!, text: String!): Note!
 	}
 `;
 
-let notes = [
-	{
-		id: "1",
-		time: 4,
+let notes = {
+
+	0: {
+		id: "0",
+		time: 0,
 		title: "Hey",
 		text: "You"
 	},
-	{
-		id: "2",
+	1: {
+		id: "1",
 		time: 1,
 		title: "All",
 		text: "You"
 	}
-];
+};
 let totalNotesCount = 2;
+
+function updateObject(obj, props) {
+	Object.entries(props).forEach(([prop, value]) => { obj[prop] = value; });
+}
 
 const resolvers = {
 	Query: {
 		notes(){
-			return notes;
+			return Object.values(notes);
 		},
 
 		totalNotesCount(){
@@ -50,17 +56,25 @@ const resolvers = {
 		}
 	},
 	Mutation: {
-		addNote(parent, args){
+		CreateNote(){
 			let note = {
 				"id": totalNotesCount+"",
 				"time": totalNotesCount,
-				"title": args.title,
-				"text": args.text,
+				"title": "",
+				"text": ""
 			};
+            notes[totalNotesCounter] = note;
 			totalNotesCount++;
-			notes.push(note);
 			return note;
-		}
+		},
+        EditNote(_, args){
+            let note = {
+                "title": args.title,
+                "text": args.text,
+            }
+            updateObject(notes[parseInt(args.id)], note);
+            return notes[parseInt(args.id)];
+        },
 	}
 };
 
