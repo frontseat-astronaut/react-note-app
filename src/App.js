@@ -16,32 +16,42 @@ var scroller = Scroll.scroller;
 
 
 const NOTES_QUERY = gql`
-  query GetNotes{
-    notes{
-      id
-      time
-      title
-      text
+    query GetNotes{
+        notes{
+            id
+            time
+            title
+            text
     }
   }
 `;
 const EDIT_NOTE = gql`
-  mutation EditNote($id: ID!, $title: String!, $text: String!){
-      EditNote(id: $id, title: $title, text: $text){
-          id
-          time
-          title
-          text
+    mutation EditNote($id: ID!, $title: String!, $text: String!){
+        EditNote(id: $id, title: $title, text: $text){
+            id
+            time
+            title
+            text
       }
   }
 `;
 const CREATE_NOTE = gql`
-  mutation CreateNote($title: String!, $text: String!){
-      CreateNote(title: $title, text: $text){
-          id
-          time
-          title
-          text
+    mutation CreateNote($title: String!, $text: String!){
+        CreateNote(title: $title, text: $text){
+            id
+            time
+            title
+            text
+      }
+  }
+`;
+const DELETE_NOTE = gql`
+    mutation DeleteNote($id: ID!){
+        DeleteNote(id: $id){
+            id
+            time
+            title
+            text
       }
   }
 `;
@@ -72,11 +82,31 @@ function TextBody(props) {
 }
 
 
+function useDelete(id){
+    const [mutationFn, {loading, error, data}] = useMutation(DELETE_NOTE, {
+        refetchQueries: [NOTES_QUERY]
+    });
+
+    let deleteNote = () => {
+        mutationFn({
+            variables: {id: id}
+        })
+    };
+
+    return [{ loading, error }, deleteNote];
+}
+
 function Note(props) {
+
+    const [{ loading, error }, deleteNote] = useDelete(props.id); // TODO: Note can exploit useDelete by deleting other note ID
+
     return (
         <div className="Note">
             <div className="Options">
-                {/* <a href="#" onClick={deleteNote}>[x]</a> */}
+                {(loading)?"Loading...":(
+                    (error)?"Error!":
+                        <a href="#" onClick={deleteNote}>[x]</a>
+                )}
                 <br />
                 <a href="#" onClick={props.handleEdit}>[/]</a>
             </div>
@@ -115,12 +145,15 @@ function useSubmit(id, doCreate) {
 }
 
 function DraftNote(props) {
-    const [{ loading, error }, submitNote] = useSubmit(props.id, props.doCreate); // TODO: DraftNote shouldn't be able to edit any other note
+    const [{ loading, error }, submitNote] = useSubmit(props.id, props.doCreate); // TODO: similar issue as above 
     const [draft, changeDraft] = useState({ title: props.title, text: props.text });
+
     let handleChange = (field) => ((value) => {
         changeDraft({ ...draft, [field]: value });
     });
     let handleSubmit = () => { props.deleteDraftNote(); submitNote(draft); };
+    let handleCancel = () => { props.deleteDraftNote(); };
+
     return (
         <div className="DraftNote">
             <TextBody
@@ -142,7 +175,7 @@ function DraftNote(props) {
                     (error)?"Error!":(
                         <div>
                             <button className="DoneButton" onClick={handleSubmit}> Done </button>
-                            {/* <button className="CancelButton" onClick={handleCancel}> Cancel </button> */}
+                            <button className="CancelButton" onClick={handleCancel}> Cancel </button>
                         </div>
                 ))
             }
@@ -168,6 +201,7 @@ function getNoteComponents(notes, draftNotes, handleEdit, deleteDraftNote) {
         allNotes[note.id] =
             <Note
                 key={note.id}
+                id={note.id}
                 title={note.title}
                 text={note.text}
                 handleEdit={handleEdit(note)}

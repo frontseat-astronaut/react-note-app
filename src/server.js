@@ -20,6 +20,7 @@ const typeDefs = gql`
 	type Mutation{
 		CreateNote(title: String!, text: String!): Note!
         EditNote(id: ID!, title: String!, text: String!): Note!
+		DeleteNote(id: ID!): Note
 	}
 `;
 
@@ -58,6 +59,11 @@ const resolvers = {
             updateObject(notes[parseInt(args.id)], note);
             return notes[parseInt(args.id)];
         },
+		DeleteNote(_, args){
+			const { [args.id]: note, ...rest } = notes;
+			notes = rest;
+			return note;
+		}
 	}
 };
 
