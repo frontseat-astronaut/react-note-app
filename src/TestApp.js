@@ -35,19 +35,20 @@ import React, {useState} from 'react';
 // }
 
 function Note(props){
-    console.log(`Running ${props.num}`);
-    const [note, _] = useState(`Note ${props.num}`);
+    const [note, changeNote] = useState(`Note ${props.num}`);
+    console.log(note);
+    let editNote = ()=>changeNote(note + ".");
     return (
         <div>
             {note}
+            <button onClick={editNote}>Edit</button>
         </div>
     );
 }
 function TestApp(){
-    // console.log(`Running root`);
+    console.log(`Running root`);
     const [noteIndices, changeNotes] = useState([]);
     const [noteCount, changeNoteCnt] = useState(0);
-    // console.log(noteIndices);
     let addNote = ()=>{
         changeNoteCnt(noteCount+1);
         changeNotes([...noteIndices, noteCount]);
@@ -55,9 +56,7 @@ function TestApp(){
     let delNote = ()=>{
         changeNotes(noteIndices.slice(1));
     };
-    // let notes = noteIndices.map((i)=>(<Note num={i}/>));
-    let notes = noteIndices.map((i)=>(<Note key={i} num={i}/>));
-    console.log(notes);
+    let notes = noteIndices.map((i)=>(<Note num={i}/>));
     return (
         <div>
             <button onClick={addNote}>+Add Note</button>

@@ -40,7 +40,7 @@ textarea:hover {
   height: 20%;
 }
 
-.AddNoteOption{
+.AddNoteButton{
   position: absolute;
 }
 
@@ -79,7 +79,7 @@ textarea:hover {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
-.Note, .EditingNote {
+.Note, .DraftNote{
   position: relative;
   background: rgb(67, 77, 87);
   border-style: solid;
@@ -89,7 +89,7 @@ textarea:hover {
   height: 300px;
 }
 
-.EditingNote {
+.DraftNote {
   background: rgb(27, 27, 27);
 }
 

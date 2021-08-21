@@ -16,14 +16,13 @@ var scroller = Scroll.scroller;
 
 
 const NOTES_QUERY = gql`
-  query GetNotesAndCount{
+  query GetNotes{
     notes{
       id
       time
       title
       text
     }
-    totalNotesCount
   }
 `;
 const EDIT_NOTE = gql`
@@ -36,69 +35,145 @@ const EDIT_NOTE = gql`
       }
   }
 `;
+const CREATE_NOTE = gql`
+  mutation CreateNote($title: String!, $text: String!){
+      CreateNote(title: $title, text: $text){
+          id
+          time
+          title
+          text
+      }
+  }
+`;
 
 
 function Note(props){
-    const [draft, changeDraft] = useState(null);
-    let handleEdit = ()=>{
-        changeDraft({title: props.title, text: props.text});
+    return (
+        <div className="Note">
+            <h1>{props.title} </h1>
+            <br />
+            {props.text}
+            <button onClick={props.handleEdit}>Edit</button>
+        </div>
+    );
+}
+
+
+function useSubmit(id, doCreate){
+    const docNode = doCreate?CREATE_NOTE:EDIT_NOTE;
+    const [mutationFn, {loading, error, data}] = useMutation(docNode, {
+        refetchQueries: [NOTES_QUERY]
+    });
+
+    let submitNote = draft => {
+        mutationFn({
+            variables: {
+                ...draft,
+                id: id
+            }
+        });
     };
+    return [{loading, error}, submitNote];
+}
+
+
+function DraftNote(props){
+    const [{loading, error}, submitNote] = useSubmit(props.id, props.doCreate); // TODO: DraftNote shouldn't be able to edit any other note
+    const [draft, changeDraft] = useState({title: props.title, text: props.text});
     let handleChange = (field) => ((event)=>{
         changeDraft({...draft, [field]: event.target.value});
     }); 
-    let handleSubmit = ()=>{
-        props.editNote(draft);
-        changeDraft(null);
-    };
-    if(draft){
-        return (
-            <div className="EditingNote">
-                <h1><input value={draft.title} onChange={handleChange('title')}/> </h1>
-                <br />
-                <input value={draft.text} onChange={handleChange('text')}/>
-                <button onClick={handleSubmit}>Submit</button>
-            </div>
-        );
-    }
-    else
-        return (
-            <div className="Note">
-                <h1>{props.title} </h1>
-                <br />
-                {props.text}
-                <button onClick={handleEdit}>Edit</button>
-            </div>
-        );
+    let handleSubmit = ()=>{props.deleteDraftNote(); submitNote(draft);};
+    return (
+        <div className="DraftNote">
+            <h1><input value={draft.title} onChange={handleChange('title')}/> </h1>
+            <br />
+            <input value={draft.text} onChange={handleChange('text')}/>
+            {
+                (loading)?"Loading...":(
+                    (error)?"Error!":
+                        <button onClick={handleSubmit}>Done</button>
+                )
+            }
+        </div>
+    );
 }
 
 
 function NotesGrid(props){
 
-    let notes = props.notes.map((note)=><Note key={note.id} title={note.title} text={note.text} editNote={props.editNote(note.id)} />);
     return (
       <div className="NotesGrid">
-        {notes}
+        {props.notes}
       </div>
     );
 }
 
 
+function getNoteComponents(notes, draftNotes, handleEdit, deleteDraftNote){
+
+    let allNotes = {};
+    notes.forEach(note =>{
+        allNotes[note.id] = 
+            <Note 
+                key={note.id}
+                title={note.title}
+                text={note.text} 
+                handleEdit={handleEdit(note)}
+            />;
+    });
+    Object.entries(draftNotes).forEach(([id, note])=>{
+        let minusID = `${-parseInt(id)}`;
+        allNotes[minusID] = 
+            <DraftNote 
+                key={minusID}
+                title={note.title}
+                text={note.text}
+                doCreate={id>0}
+                id={minusID}
+                deleteDraftNote={deleteDraftNote(id)}
+            />
+    });
+
+    return Object.values(allNotes);
+}
+
+
 function App(){
 
-    const {loading, error, data} = useQuery(NOTES_QUERY);
-    const [editNoteMutation, {loading_, error_, _}] = useMutation(EDIT_NOTE);
+    const {loading, error, data, refetch} = useQuery(NOTES_QUERY);
 
-    let editNote = (id) => ((draft)=>
-        editNoteMutation({
-            variables: {
-                ...draft,
-                id: id
+    const [draftNotes, changeDraftNotes] = useState({});
+    const [draftNotesCount, changeDraftNotesCount] = useState(0);
+
+    let handleAddNote = ()=>{
+        let id = draftNotesCount+1;
+        changeDraftNotes({...draftNotes, 
+            [`${id}`]: {
+                title: "",
+                text: "",
+        }});
+        changeDraftNotesCount(draftNotesCount+1);
+    }
+
+    let handleEdit = note => () => {
+        console.log(note);
+        changeDraftNotes({...draftNotes, 
+            [`-${note.id}`]: {
+                title: note.title,
+                text: note.text,
             }
-        })
-    );
+        });
+        changeDraftNotesCount(draftNotesCount+1);
+    };
+
+    let deleteDraftNote = id =>()=>{
+        const {[id]:sm, ...rest} = draftNotes;
+        changeDraftNotes(rest);
+    };
 
     const notes = data && data.notes;
-    const totalNotesCount = data && data.totalNotesCount;
+    const allNotes = data && getNoteComponents(notes, draftNotes, handleEdit, deleteDraftNote);
 
     if(loading)
         return <div>Loading...</div>
@@ -108,7 +183,8 @@ function App(){
         <div className="App">
             <h1 className="Heading">NOTES</h1>
             <br />
-            {/* <button className="AddNoteOption" onClick={handleNewNote}> + Add Note </button> */}
+            <button className="RefreshButton" onClick={() => refetch()}>Refresh</button>
+            <button className="AddNoteButton" onClick={handleAddNote}>+ Add Note</button>
             {/* <SearchBar searchString={state.searchString} handleChangeSearch={handleChangeSearch} /> */}
             {/* <div className="SortOptions"> */}
             {/* Sort By:&nbsp; */}
@@ -116,7 +192,7 @@ function App(){
             {/* <button onClick={changeOrder("title")}> Title </button> */}
             {/* </div> */}
             <br /> <br /> <br /> <br />
-            <NotesGrid notes={notes} editNote={editNote}/>
+            <NotesGrid notes={allNotes} />
         </div>
 
     );
