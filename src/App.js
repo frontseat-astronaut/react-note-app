@@ -55,7 +55,7 @@ const DELETE_NOTE = gql`
       }
   }
 `;
-const CHAR_LIMIT = 10;
+const CHAR_LIMIT = 500;
 
 
 function CharCounter(props) {

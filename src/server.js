@@ -1,11 +1,9 @@
 const { ApolloServer, gql } = require('apollo-server');
+const { JsonDB } = require('node-json-db');
+const { Config } = require('node-json-db/dist/lib/JsonDBConfig');
 
-// A schema is a collection of type definitions (hence "typeDefs")
-// that together define the "shape" of queries that are executed against
-// your data.
+
 const typeDefs = gql`
-#	Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
-
 	type Note{
 		id: ID!
 		time: Int
@@ -24,10 +22,10 @@ const typeDefs = gql`
 	}
 `;
 
-let notes = {
-
-};
-let totalNotesCount = 0;
+var db = new JsonDB(new Config("notes", true));
+db.push("/notes", {});
+db.push("/totalNotesCount", 0); 
+console.log(db.getData("/"));
 
 function updateObject(obj, props) {
 	Object.entries(props).forEach(([prop, value]) => { obj[prop] = value; });
@@ -36,42 +34,42 @@ function updateObject(obj, props) {
 const resolvers = {
 	Query: {
 		notes(){
-			return Object.values(notes);
+			return Object.values(db.getData("/notes"));
 		},
 	},
 	Mutation: {
 		CreateNote(_, args){
-			totalNotesCount++;
+			let totalNotesCount = db.getData("/totalNotesCount")+1;
 			let note = {
 				"id": totalNotesCount+"",
 				"time": totalNotesCount,
 				"title": args.title,
 				"text": args.text
 			};
-            notes[totalNotesCount] = note;
+			db.push(`/notes/${totalNotesCount}`, note);
+			db.push("/totalNotesCount", totalNotesCount);
 			return note;
 		},
         EditNote(_, args){
-            let note = {
+            let props = {
                 "title": args.title,
                 "text": args.text,
             }
-            updateObject(notes[parseInt(args.id)], note);
-            return notes[parseInt(args.id)];
+			let note = db.getData(`/notes/${args.id}`);
+            updateObject(note, props);
+			db.push(`/notes/${args.id}`, note);
+            return note;
         },
 		DeleteNote(_, args){
-			const { [args.id]: note, ...rest } = notes;
-			notes = rest;
+			let note = db.getData(`/notes/${args.id}`)
+			db.delete(`/notes/${args.id}`);
 			return note;
 		}
 	}
 };
 
-// The ApolloServer constructor requires two parameters: your schema
-// definition and your set of resolvers.
 const server = new ApolloServer({ typeDefs, resolvers });
 
-// The `listen` method launches a web server.
 server.listen().then(({ url }) => {
 	console.log(`🚀  Server ready at ${url}`);
 });
