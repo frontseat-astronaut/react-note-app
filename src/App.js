@@ -122,15 +122,20 @@ function getNoteComponents(notes, draftNotes, handleEdit, deleteDraftNote){
                 handleEdit={handleEdit(note)}
             />;
     });
+    /*
+    If id<0, it's a draft that's not yet present in the server and we have to perform CREATE_NOTE
+    If id>0, it's a draft that's already present in the server and we have to perform EDIT_NOTE
+    id = 0 should not be possible
+    */
     Object.entries(draftNotes).forEach(([id, note])=>{
-        let minusID = `${-parseInt(id)}`;
-        allNotes[minusID] = 
+        console.assert(id!=0);
+        allNotes[id] = 
             <DraftNote 
-                key={minusID}
+                key={id}
                 title={note.title}
                 text={note.text}
-                doCreate={id>0}
-                id={minusID}
+                doCreate={id<0}
+                id={id}
                 deleteDraftNote={deleteDraftNote(id)}
             />
     });
@@ -149,7 +154,7 @@ function App(){
     let handleAddNote = ()=>{
         let id = draftNotesCount+1;
         changeDraftNotes({...draftNotes, 
-            [`${id}`]: {
+            [`-${id}`]: {
                 title: "",
                 text: "",
         }});
@@ -157,9 +162,8 @@ function App(){
     }
 
     let handleEdit = note => () => {
-        console.log(note);
         changeDraftNotes({...draftNotes, 
-            [`-${note.id}`]: {
+            [note.id]: {
                 title: note.title,
                 text: note.text,
             }
