@@ -6,7 +6,7 @@ const { Config } = require('node-json-db/dist/lib/JsonDBConfig');
 const typeDefs = gql`
 	type Note{
 		id: ID!
-		time: Int
+		time: String!
 		title: String!
 		text: String!
 	}
@@ -23,12 +23,24 @@ const typeDefs = gql`
 `;
 
 var db = new JsonDB(new Config("notes", true));
-db.push("/notes", {});
-db.push("/totalNotesCount", 0); 
+if( Object.keys(db.getData("/"))==0 ){
+	db.push("/notes", {});
+	db.push("/totalNotesCount", 0); 
+}
 console.log(db.getData("/"));
 
 function updateObject(obj, props) {
 	Object.entries(props).forEach(([prop, value]) => { obj[prop] = value; });
+}
+
+// TODO: use utils.js; having import some issue
+function getCurrentTime(){
+    const zp = (num, cnt) => String(num).padStart(cnt, "0");
+    let today = new Date();
+    let date = zp(today.getFullYear(), 4)+zp(today.getMonth()+1, 2)+zp(today.getDate(), 2);
+    let time = zp(today.getHours(), 2) + zp(today.getMinutes(), 2) + zp(today.getSeconds(), 2);
+    let dateTime = date+time;
+    return dateTime;
 }
 
 const resolvers = {
@@ -42,7 +54,7 @@ const resolvers = {
 			let totalNotesCount = db.getData("/totalNotesCount")+1;
 			let note = {
 				"id": totalNotesCount+"",
-				"time": totalNotesCount,
+				"time": getCurrentTime(),
 				"title": args.title,
 				"text": args.text
 			};
@@ -54,6 +66,7 @@ const resolvers = {
             let props = {
                 "title": args.title,
                 "text": args.text,
+				"time": getCurrentTime(),
             }
 			let note = db.getData(`/notes/${args.id}`);
             updateObject(note, props);

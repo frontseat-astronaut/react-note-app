@@ -8,6 +8,7 @@ import {
     useMutation,
     gql
 } from "@apollo/client";
+import getCurrentTime from './utils'
 
 
 var Scroll = require('react-scroll');
@@ -194,6 +195,30 @@ function NotesGrid(props) {
 }
 
 
+function useSort(notes){
+    const byTime = (a, b) => ((a.props.time > b.props.time)?-1:1);
+    const byTitle = (a, b) => ((a.props.title.toLowerCase() < b.props.title.toLowerCase())?-1:1);
+
+    const [sortBy, changeSortBy] = useState(()=>byTime);
+
+    const handleClick = sortBy => () => changeSortBy(()=>sortBy);
+
+    if(!notes) return [null, null];
+    
+    console.log(sortBy);
+    let sortedNotes = [...notes];
+    sortedNotes.sort(sortBy);
+
+    return [(
+        <div classname="SortOptions">
+            sort by:&nbsp;
+            <button onClick={handleClick(byTime)}> time </button>
+            <button onClick={handleClick(byTitle)}> title </button>
+        </div>
+    ), sortedNotes];
+}
+
+
 function getNoteComponents(notes, draftNotes, handleEdit, deleteDraftNote) {
 
     let allNotes = {};
@@ -202,6 +227,7 @@ function getNoteComponents(notes, draftNotes, handleEdit, deleteDraftNote) {
             <Note
                 key={note.id}
                 id={note.id}
+                time={note.time}
                 title={note.title}
                 text={note.text}
                 handleEdit={handleEdit(note)}
@@ -219,6 +245,7 @@ function getNoteComponents(notes, draftNotes, handleEdit, deleteDraftNote) {
                 key={id}
                 title={note.title}
                 text={note.text}
+                time={note.time}
                 doCreate={id < 0}
                 id={id}
                 deleteDraftNote={deleteDraftNote(id)}
@@ -242,6 +269,7 @@ function App() {
             [`-${id}`]: {
                 title: "",
                 text: "",
+                time: ":" + getCurrentTime(),
             }
         });
         changeDraftNotesCount(draftNotesCount + 1);
@@ -253,6 +281,7 @@ function App() {
             [note.id]: {
                 title: note.title,
                 text: note.text,
+                time: ":" + getCurrentTime(),
             }
         });
         changeDraftNotesCount(draftNotesCount + 1);
@@ -265,11 +294,13 @@ function App() {
 
     const notes = data && data.notes;
     const allNotes = data && getNoteComponents(notes, draftNotes, handleEdit, deleteDraftNote);
+    const [sortButton, sortedNotes] = useSort(allNotes);
 
     if (loading)
         return <div>Loading...</div>
     if (error)
         return <div>Error in receiving notes!</div>
+
     return (
         <div className="App">
             <h1 className="Heading">NOTES</h1>
@@ -277,13 +308,9 @@ function App() {
             <button className="RefreshButton" onClick={() => refetch()}>Refresh</button>
             <button className="AddNoteButton" onClick={handleAddNote}>+ Add Note</button>
             {/* <SearchBar searchString={state.searchString} handleChangeSearch={handleChangeSearch} /> */}
-            {/* <div className="SortOptions"> */}
-            {/* Sort By:&nbsp; */}
-            {/* <button onClick={changeOrder("time")}> Time </button> */}
-            {/* <button onClick={changeOrder("title")}> Title </button> */}
-            {/* </div> */}
+            {sortButton}
             <br /> <br /> <br /> <br />
-            <NotesGrid notes={allNotes} />
+            <NotesGrid notes={sortedNotes} /> 
         </div>
 
     );

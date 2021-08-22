@@ -301,11 +301,6 @@ function App(){
       <br />
       <button className="AddNoteOption" onClick={handleNewNote}> + Add Note </button>
       <SearchBar searchString={state.searchString} handleChangeSearch={handleChangeSearch} />
-      <div className="SortOptions">
-        Sort By:&nbsp;
-        <button onClick={changeOrder("time")}> Time </button>
-        <button onClick={changeOrder("title")}> Title </button>
-      </div>
       <br /> <br /> <br /> <br />
       {displayNotes()}
     </div>
