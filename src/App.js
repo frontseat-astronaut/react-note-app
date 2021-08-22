@@ -8,7 +8,6 @@ import {
     useMutation,
     gql
 } from "@apollo/client";
-import getCurrentTime from './utils'
 
 
 var Scroll = require('react-scroll');
@@ -269,7 +268,7 @@ function App() {
             [`-${id}`]: {
                 title: "",
                 text: "",
-                time: ":" + getCurrentTime(),
+                time: ":",
             }
         });
         changeDraftNotesCount(draftNotesCount + 1);
@@ -281,7 +280,7 @@ function App() {
             [note.id]: {
                 title: note.title,
                 text: note.text,
-                time: ":" + getCurrentTime(),
+                time: ":",
             }
         });
         changeDraftNotesCount(draftNotesCount + 1);
