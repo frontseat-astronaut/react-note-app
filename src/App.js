@@ -200,21 +200,37 @@ function useSort(notes){
 
     const [sortBy, changeSortBy] = useState(()=>byTime);
 
-    const handleClick = sortBy => () => changeSortBy(()=>sortBy);
+    const changeOrder = sortBy => () => changeSortBy(()=>sortBy);
 
-    if(!notes) return [null, null];
+    if(!notes) return [null, ()=>{}, ()=>{}];
     
-    console.log(sortBy);
     let sortedNotes = [...notes];
     sortedNotes.sort(sortBy);
 
-    return [(
-        <div classname="SortOptions">
-            sort by:&nbsp;
-            <button onClick={handleClick(byTime)}> time </button>
-            <button onClick={handleClick(byTitle)}> title </button>
-        </div>
-    ), sortedNotes];
+    return [sortedNotes, changeOrder(byTime), changeOrder(byTitle)];
+}
+
+
+function useSearch(notes){
+    const [searchString, changeSearchString] = useState("");
+
+    const handleChangeSearch = event => changeSearchString(event.target.value);
+
+    if(!notes) return [null, searchString, ()=>{}];
+    
+    let filteredNotes = [...notes].filter(note => note.props.title.startsWith(searchString));
+    console.log(filteredNotes);
+
+    return [filteredNotes, searchString, handleChangeSearch];
+}
+
+
+function SearchBar(props) {
+  return (<div className="Search">
+    {(props.searchString == "") ?
+      <input className="DefaultSearchText" value={"Search by Title..."} readOnly /> : (null)}
+    <input className="SearchText" value={props.searchString} onChange={props.handleChangeSearch} />
+  </div>);
 }
 
 
@@ -293,7 +309,8 @@ function App() {
 
     const notes = data && data.notes;
     const allNotes = data && getNoteComponents(notes, draftNotes, handleEdit, deleteDraftNote);
-    const [sortButton, sortedNotes] = useSort(allNotes);
+    const [filteredNotes, searchString, handleChangeSearch] = useSearch(allNotes);
+    const [sortedNotes, sortByTime, sortByTitle] = useSort(filteredNotes);
 
     if (loading)
         return <div>Loading...</div>
@@ -306,8 +323,12 @@ function App() {
             <br />
             <button className="RefreshButton" onClick={() => refetch()}>Refresh</button>
             <button className="AddNoteButton" onClick={handleAddNote}>+ Add Note</button>
-            {/* <SearchBar searchString={state.searchString} handleChangeSearch={handleChangeSearch} /> */}
-            {sortButton}
+            <div className="SortOptions">
+                Sort by:&nbsp;
+                <button onClick={sortByTime}> time </button>
+                <button onClick={sortByTitle}> title </button>
+            </div>
+            <SearchBar searchString={searchString} handleChangeSearch={handleChangeSearch} />
             <br /> <br /> <br /> <br />
             <NotesGrid notes={sortedNotes} /> 
         </div>

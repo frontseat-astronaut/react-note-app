@@ -42,6 +42,13 @@ textarea:hover {
 
 .AddNoteButton{
   position: absolute;
+  width: fit-content;
+  left: 8%;
+}
+
+.RefreshButton{
+  position: absolute;
+  width: fit-content;
 }
 
 .Search {
@@ -69,8 +76,8 @@ textarea:hover {
 .SortOptions {
   position: absolute;
   right: 0%;
-  width: fit-content;
   font-size: 14px;
+  width:fit-content;
 }
 
 .NotesGrid {
